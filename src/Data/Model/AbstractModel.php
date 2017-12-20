@@ -19,6 +19,8 @@ abstract class AbstractModel implements \JsonSerializable {
      */
     use \Maleficarum\Data\Container\Meta\Container;
 
+    use \Maleficarum\Data\PropertyMutatorTrait;
+
     /* ------------------------------------ Class Traits END ------------------------------------------- */
 
     /* ------------------------------------ Class Methods START ---------------------------------------- */
@@ -33,7 +35,7 @@ abstract class AbstractModel implements \JsonSerializable {
     public function merge(array $data): \Maleficarum\Data\Model\AbstractModel {
         // attempt to merge as much input data as possible
         foreach ($data as $key => $val) {
-            $methodName = 'set' . str_replace(' ', '', ucwords($key));
+            $methodName = $this->getSetterMethod($key);
             method_exists($this, $methodName) and $this->$methodName($val);
         }
 
@@ -55,7 +57,7 @@ abstract class AbstractModel implements \JsonSerializable {
 
         // clear all properties that have setters
         foreach ($properties as $val) {
-            $methodName = 'set' . str_replace(' ', '', ucwords(str_replace('_', ' ', $val->name)));
+            $methodName = $this->getSetterMethod($val->name);
             method_exists($this, $methodName) and $this->$methodName(null);
         }
 
@@ -85,7 +87,7 @@ abstract class AbstractModel implements \JsonSerializable {
                 continue;
             }
 
-            $methodName = 'get' . str_replace(' ', "", ucwords($val->name));
+            $methodName = $this->getGetterMethod($val->name);
             method_exists($this, $methodName) and $result[$val->name] = $this->$methodName();
         }
 
